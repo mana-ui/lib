@@ -1,0 +1,16 @@
+{
+  "name": "@mana/lib",
+  "main": "src/index.js",
+  "version": "0.1.0",
+  "dependencies": {
+    "framer-motion": "^1.11.0"
+  },
+  "devDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  }
+}
