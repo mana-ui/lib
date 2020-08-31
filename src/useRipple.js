@@ -62,10 +62,10 @@ export default (color = "#000") => {
         const initialSize = Math.floor(maxDim * 0.6);
         const initialRadius = initialSize / 2;
         const handler = () => {
-          document.removeEventListener("mouseup", handler);
+          document.removeEventListener("pointerup", handler);
           setRipple(null);
         };
-        document.addEventListener("mouseup", handler);
+        document.addEventListener("pointerup", handler);
         setRipple({
           initialSize,
           init: {
@@ -79,9 +79,9 @@ export default (color = "#000") => {
           },
         });
       };
-      node.addEventListener("mousedown", ripple);
+      node.addEventListener("pointerdown", ripple);
       return () => {
-        node.removeEventListener("mousedown", ripple);
+        node.removeEventListener("pointerdown", ripple);
       };
     }
   });
