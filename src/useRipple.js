@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { css } from 'linaria'
 
 const Ripple = ({ color, init, end, initialSize }) => {
   const variants = {
@@ -30,15 +31,17 @@ const Ripple = ({ color, init, end, initialSize }) => {
       animate={["fg-radius-in", "fg-opacity-in"]}
       exit="fg-opacity-out"
       variants={variants}
+      className={css`
+        position: absolute;
+        border-radius: 50%;
+        display: inline-block;
+        left: 0;
+        top: 0;
+      `}
       style={{
-        width: initialSize,
+         width: initialSize,
         height: initialSize,
-        position: "absolute",
-        borderRadius: "50%",
         background: color,
-        display: "inline-block",
-        left: 0,
-        top: 0,
       }}
     />
   );
