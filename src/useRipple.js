@@ -1,8 +1,18 @@
-import React, { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { css } from 'linaria'
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { createUseStyles } from "react-jss";
 
-const Ripple = ({ color, init, end, initialSize }) => {
+const useStyles = createUseStyles({
+  ripple: `
+  position: absolute;
+  border-radius: 50%;
+  display: inline-block;
+  left: 0;
+  top: 0;
+  `,
+});
+
+const Ripple = ({ color, init, end, initialSize, onAnimationEnd }) => {
   const variants = {
     initial: {
       opacity: 0,
@@ -25,21 +35,17 @@ const Ripple = ({ color, init, end, initialSize }) => {
       transition: { duration: 0.15 },
     },
   };
+  const classes = useStyles();
   return (
     <motion.div
       initial="initial"
       animate={["fg-radius-in", "fg-opacity-in"]}
       exit="fg-opacity-out"
       variants={variants}
-      className={css`
-        position: absolute;
-        border-radius: 50%;
-        display: inline-block;
-        left: 0;
-        top: 0;
-      `}
+      onAnimationComplete={onAnimationEnd}
+      className={classes.ripple}
       style={{
-         width: initialSize,
+        width: initialSize,
         height: initialSize,
         background: color,
       }}
@@ -49,11 +55,25 @@ const Ripple = ({ color, init, end, initialSize }) => {
 
 export default (color = "#000") => {
   const surfaceRef = useRef();
+  const pointerUp = useRef()
+  const animationEnd = useRef()
   const [ripple, setRipple] = useState(null);
+  const handler = useCallback(() => {
+    if (pointerUp.current && animationEnd.current) {
+      setRipple(null);
+    }
+  }, []);
+  const pointerUpHandler = useCallback(() => {
+    pointerUp.current = true
+    document.removeEventListener("pointerup", pointerUpHandler);
+    handler()
+  }, [handler])
   useEffect(() => {
     if (surfaceRef.current) {
       const node = surfaceRef.current;
-      const ripple = (event) => {
+      const ripple = async (event) => {
+        pointerUp.current = false
+        animationEnd.current = false
         const left = event.clientX - node.offsetLeft;
         const top = event.clientY - node.offsetTop;
 
@@ -64,11 +84,7 @@ export default (color = "#000") => {
           Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) + 10;
         const initialSize = Math.floor(maxDim * 0.6);
         const initialRadius = initialSize / 2;
-        const handler = () => {
-          document.removeEventListener("pointerup", handler);
-          setRipple(null);
-        };
-        document.addEventListener("pointerup", handler);
+        document.addEventListener("pointerup", pointerUpHandler);
         setRipple({
           initialSize,
           init: {
@@ -91,7 +107,10 @@ export default (color = "#000") => {
   return [
     surfaceRef,
     <AnimatePresence>
-      {ripple && <Ripple {...ripple} color={color} />}
+      {ripple && <Ripple {...ripple} onAnimationEnd={() => {
+        animationEnd.current = true
+        handler()
+      }} color={color} />}
     </AnimatePresence>,
   ];
 };
