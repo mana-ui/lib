@@ -74,8 +74,9 @@ export default (color = "#000") => {
       const ripple = async (event) => {
         pointerUp.current = false
         animationEnd.current = false
-        const left = event.clientX - node.offsetLeft;
-        const top = event.clientY - node.offsetTop;
+        const rect = node.getBoundingClientRect()
+        const left = event.clientX - rect.left;
+        const top = event.clientY - rect.top;
 
         const width = node.offsetWidth,
           height = node.offsetHeight;
