@@ -1,5 +1,5 @@
 {
-  "name": "@mana/lib",
+  "name": "@mana-ui/lib",
   "main": "src/index.js",
   "version": "0.1.0",
   "dependencies": {
