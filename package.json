@@ -3,7 +3,7 @@
   "main": "src/index.js",
   "version": "0.1.0",
   "dependencies": {
-    "framer-motion": "^1.11.0",
+    "framer-motion": "^4.1.17",
     "react-jss": "^10.4.0",
     "regenerator-runtime": "^0.13.7"
   },
