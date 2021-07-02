@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { createUseStyles } from "react-jss";
 
 const useStyles = createUseStyles({
@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
   `,
 });
 
-const Ripple = ({ color, init, end, initialSize, onAnimationEnd }) => {
+const Ripple = ({ color, init, end, initialSize }) => {
   const variants = {
     initial: {
       opacity: 0,
@@ -42,7 +42,6 @@ const Ripple = ({ color, init, end, initialSize, onAnimationEnd }) => {
       animate={["fg-radius-in", "fg-opacity-in"]}
       exit="fg-opacity-out"
       variants={variants}
-      onAnimationComplete={onAnimationEnd}
       className={classes.ripple}
       style={{
         width: initialSize,
@@ -55,63 +54,59 @@ const Ripple = ({ color, init, end, initialSize, onAnimationEnd }) => {
 
 export default (color = "#000") => {
   const surfaceRef = useRef();
-  const pointerUp = useRef()
-  const animationEnd = useRef()
-  const [ripple, setRipple] = useState(null);
-  const handler = useCallback(() => {
-    if (pointerUp.current && animationEnd.current) {
-      setRipple(null);
-    }
+	const [pointerDown, setPointerDown] = useState(null)
+  const pressUpHandler = useCallback(() => {
+		setPointerDown(null);
   }, []);
-  const pointerUpHandler = useCallback(() => {
-    pointerUp.current = true
-    document.removeEventListener("pointerup", pointerUpHandler);
-    handler()
-  }, [handler])
   useEffect(() => {
     if (surfaceRef.current) {
       const node = surfaceRef.current;
-      const ripple = async (event) => {
-        pointerUp.current = false
-        animationEnd.current = false
-        const rect = node.getBoundingClientRect()
-        const left = event.clientX - rect.left;
-        const top = event.clientY - rect.top;
-
-        const width = node.offsetWidth,
-          height = node.offsetHeight;
-        const maxDim = Math.max(width, height);
-        const maxRadius =
-          Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) + 10;
-        const initialSize = Math.floor(maxDim * 0.6);
-        const initialRadius = initialSize / 2;
-        document.addEventListener("pointerup", pointerUpHandler);
-        setRipple({
-          initialSize,
-          init: {
-            x: left - initialRadius,
-            y: top - initialRadius,
-          },
-          end: {
-            x: width / 2 - initialRadius,
-            y: height / 2 - initialRadius,
-            scale: maxRadius / initialSize,
-          },
-        });
-      };
-      node.addEventListener("pointerdown", ripple);
+			const press = ({clientX, clientY}) => setPointerDown({x: clientX, y: clientY})
+      node.addEventListener("pointerdown", press);
       return () => {
-        node.removeEventListener("pointerdown", ripple);
+        node.removeEventListener("pointerdown",press);
       };
     }
   });
+	useEffect(() => {
+		if (pointerDown) {
+			document.addEventListener("pointerup", pressUpHandler);
+			return () => {
+				document.removeEventListener("pointerup", pressUpHandler);
+			}
+		}
+	}, [pointerDown])
+	const ripple = useMemo(() => {
+		if (!pointerDown) return null
+		const node = surfaceRef.current
+		const rect = node.getBoundingClientRect()
+		const left = pointerDown.x- rect.left;
+		const top = pointerDown.y - rect.top;
+
+		const width = node.offsetWidth,
+			height = node.offsetHeight;
+		const maxDim = Math.max(width, height);
+		const maxRadius =
+			Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) + 10;
+		const initialSize = Math.floor(maxDim * 0.6);
+		const initialRadius = initialSize / 2;
+		return {
+			initialSize,
+			init: {
+				x: left - initialRadius,
+				y: top - initialRadius,
+			},
+			end: {
+				x: width / 2 - initialRadius,
+				y: height / 2 - initialRadius,
+				scale: maxRadius / initialSize,
+			},
+		};
+	}, [pointerDown])
   return [
     surfaceRef,
     <AnimatePresence>
-      {ripple && <Ripple {...ripple} onAnimationEnd={() => {
-        animationEnd.current = true
-        handler()
-      }} color={color} />}
+      {ripple && <Ripple {...ripple} color={color} />}
     </AnimatePresence>,
   ];
 };
