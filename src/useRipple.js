@@ -52,16 +52,26 @@ const Ripple = ({ color, init, end, initialSize }) => {
   );
 };
 
-export default (color = "#000") => {
+const resolveArgs = (arg) => {
+  if (typeof arg === 'string') {
+    return {color: arg}
+  }
+  return arg
+}
+
+export default (arg) => {
+  const {color, center = false, disabled = false} = resolveArgs(arg)
   const surfaceRef = useRef();
 	const [pointerDown, setPointerDown] = useState(null)
   const pressUpHandler = useCallback(() => {
 		setPointerDown(null);
   }, []);
   useEffect(() => {
-    if (surfaceRef.current) {
+    if (surfaceRef.current && !disabled) {
       const node = surfaceRef.current;
-			const press = ({clientX, clientY}) => setPointerDown({x: clientX, y: clientY})
+			const press = ({clientX, clientY}) => {
+        setPointerDown({x: clientX, y: clientY})
+      }
       node.addEventListener("pointerdown", press);
       return () => {
         node.removeEventListener("pointerdown",press);
@@ -80,14 +90,14 @@ export default (color = "#000") => {
 		if (!pointerDown) return null
 		const node = surfaceRef.current
 		const rect = node.getBoundingClientRect()
-		const left = pointerDown.x- rect.left;
-		const top = pointerDown.y - rect.top;
-
 		const width = node.offsetWidth,
 			height = node.offsetHeight;
+		const left = center ?  width/ 2:  pointerDown.x- rect.left;
+		const top = center ? height / 2: pointerDown.y - rect.top;
+
 		const maxDim = Math.max(width, height);
 		const maxRadius =
-			Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) + 10;
+			Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
 		const initialSize = Math.floor(maxDim * 0.6);
 		const initialRadius = initialSize / 2;
 		return {
