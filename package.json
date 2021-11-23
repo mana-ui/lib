@@ -1,7 +1,7 @@
 {
   "name": "@mana-ui/lib",
   "main": "src/index.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "framer-motion": "^4.1.17",
     "react-jss": "^10.4.0",
